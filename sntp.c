@@ -6,7 +6,7 @@
 #include "sntp.h"
 
 void
-sntp_sendto(int sock, struct sockaddr_in *addr)
+sntp_sendto(int sock, struct sockaddr *addr, socklen_t addrlen)
 {
 	struct sntp_packet pkt;
 	bzero(&pkt, sizeof(pkt));
@@ -16,15 +16,14 @@ sntp_sendto(int sock, struct sockaddr_in *addr)
 	pkt.status |= MODE_CLIENT;
 	
 	/* don't set orgtime, for securet reason? */
-        sendto(sock, &pkt, sizeof(pkt), 0, (struct sockaddr *)addr, sizeof(*addr));
+        sendto(sock, &pkt, sizeof(pkt), 0, addr, addrlen);
 }
 
 time_t
-sntp_recvfrom(int sock, struct sockaddr_in *addr, time_t orgtime)
+sntp_recvfrom(int sock, struct sockaddr *addr, socklen_t *addrlen, time_t orgtime)
 {
 	int recvlen;
 	char recvbuf[48];
-	socklen_t addrlen = sizeof(*addr);
 	struct sntp_packet *ppkt;
 
 	struct timeval timeout;
@@ -44,8 +43,7 @@ sntp_recvfrom(int sock, struct sockaddr_in *addr, time_t orgtime)
 		}
 		if (nfds > 0) {
 			if (FD_ISSET(sock, &rdfds)) {
-				recvlen = recvfrom(sock, recvbuf, 48, 0,
-							(struct sockaddr *)addr, &addrlen);
+				recvlen = recvfrom(sock, recvbuf, 48, 0, addr, addrlen);
 				break;
 			}
 		} else {

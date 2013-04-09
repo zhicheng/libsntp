@@ -112,10 +112,10 @@ struct sntp_packet {
 #define JAN_1970	2208988800UL	/* 1970 - 1900 in seconds */
 
 void
-sntp_sendto(int sock, struct sockaddr_in *addr);
+sntp_sendto(int sock, struct sockaddr *addr, socklen_t addrlen);
 
 time_t
-sntp_recvfrom(int sock, struct sockaddr_in *addr, time_t orgtime);
+sntp_recvfrom(int sock, struct sockaddr *addr, socklen_t *addrlen, time_t orgtime);
 
 
 #endif /* __SNTP_H__ */

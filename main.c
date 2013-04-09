@@ -10,18 +10,18 @@
 int
 main(int argc, char **argv)
 {
-        char *hostname = "17.82.253.7";
-        int port = 123;
-
+        char *hostname = "time.asia.apple.com";
         int sock;
-        struct sockaddr_in server_addr;
 
-        sock = socket(PF_INET, SOCK_DGRAM, 0);
+	struct addrinfo *ai;
+	int error;
 
-        memset(&server_addr, 0, sizeof(server_addr));
-        server_addr.sin_family = AF_INET;
-        server_addr.sin_addr.s_addr = inet_addr(hostname);
-        server_addr.sin_port = htons(port);
+	if ((error = getaddrinfo(hostname, "ntp", NULL, &ai)) < 0) {
+		fprintf(stderr, "%s\n", gai_strerror(error));
+		return 1;
+	}
+
+        sock = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
 
 	time_t orgtime = time(NULL);
 	if (orgtime == 0) {
@@ -31,8 +31,8 @@ main(int argc, char **argv)
 
 	time_t ntp_time;
 send:
-	sntp_sendto(sock, &server_addr);
-	if ((ntp_time = sntp_recvfrom(sock, &server_addr, orgtime)) != -1)
+	sntp_sendto(sock, ai->ai_addr, ai->ai_addrlen);
+	if ((ntp_time = sntp_recvfrom(sock, ai->ai_addr, &ai->ai_addrlen, orgtime)) != -1)
 		printf("%s", ctime(&ntp_time));
 	else
 		goto send;
